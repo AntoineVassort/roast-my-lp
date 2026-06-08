@@ -49,10 +49,22 @@ async function callProvider(
 
 export async function POST(req: Request) {
   try {
-    const { image, mimeType, mode } = await req.json();
+    const { image, mimeType, url, mode } = await req.json();
 
-    if (!image) {
-      return NextResponse.json({ error: "Image manquante" }, { status: 400 });
+    let finalImage = image;
+    let finalMimeType = mimeType || "image/jpeg";
+
+    if (!finalImage && url) {
+      const screenshotUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(url)}?w=1200&h=800`;
+      const imgResp = await fetch(screenshotUrl);
+      if (!imgResp.ok) throw new Error("Impossible de capturer l'URL");
+      const buffer = await imgResp.arrayBuffer();
+      finalImage = Buffer.from(buffer).toString("base64");
+      finalMimeType = "image/jpeg";
+    }
+
+    if (!finalImage) {
+      return NextResponse.json({ error: "Image ou URL manquante" }, { status: 400 });
     }
 
     const isRamsay = mode === "ramsay";
@@ -84,7 +96,7 @@ Réponds UNIQUEMENT avec ce JSON strict (pas de markdown, pas de backticks, just
     for (const provider of PROVIDERS) {
       try {
         console.log(`Tentative via ${provider.name}...`);
-        const text = await callProvider(provider, prompt, image, mimeType);
+        const text = await callProvider(provider, prompt, finalImage, finalMimeType);
 
         const startJson = text.indexOf("{");
         const endJson = text.lastIndexOf("}") + 1;

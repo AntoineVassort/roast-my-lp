@@ -12,7 +12,7 @@ const PROVIDERS = [
     name: "OpenRouter",
     baseURL: "https://openrouter.ai/api/v1",
     apiKey: () => process.env.OPENROUTER_API_KEY,
-    model: "google/gemini-2.0-flash-exp:free",
+    model: "google/gemini-2.0-flash:free",
   },
 ];
 

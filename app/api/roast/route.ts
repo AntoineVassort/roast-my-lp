@@ -48,6 +48,13 @@ async function callProvider(
 }
 
 export async function POST(req: Request) {
+  const mistralKey = process.env.MISTRAL_API_KEY;
+  const openrouterKey = process.env.OPENROUTER_API_KEY;
+
+  if (!mistralKey && !openrouterKey) {
+    return NextResponse.json({ error: "Aucune clé API configurée (MISTRAL_API_KEY / OPENROUTER_API_KEY)" }, { status: 500 });
+  }
+
   try {
     const { image, mimeType, url, mode } = await req.json();
 
@@ -113,6 +120,6 @@ Réponds UNIQUEMENT avec ce JSON strict (pas de markdown, pas de backticks, just
     throw lastError ?? new Error("Tous les providers ont échoué");
   } catch (error: any) {
     console.error("Erreur finale:", error.message);
-    return NextResponse.json({ error: "L'IA a eu un bug. Réessaie." }, { status: 500 });
+    return NextResponse.json({ error: error.message ?? "L'IA a eu un bug. Réessaie." }, { status: 500 });
   }
 }
